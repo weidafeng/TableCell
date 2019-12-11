@@ -127,8 +127,11 @@ def main():
                 # 显示日志
                 print(bounding_box, segmentation)
                 area = bounding_box[-1] * bounding_box[-2]  # 当前bounding-box的面积,宽×高
-                an_infos = pycococreatortools.mask_create_annotation_info(annotation_id=annotation_id, image_id=image_id, category_id=class_id, area=area, image_size=image.size, bounding_box=bounding_box,segmentation = segmentation)
-                annotation_info_list.append(an_infos)
+                # an_infos = pycococreatortools.mask_create_annotation_info(annotation_id=annotation_id, image_id=image_id, category_id=class_id, area=area, image_size=image.size, bounding_box=bounding_box,segmentation = segmentation)
+                # annotation_info_list.append(an_infos)
+                myPool.apply_async(func=pycococreatortools.mask_create_annotation_info,
+                					args= (annotation_id, image_id, category_id, area, image.size, bounding_box, segmentation),
+                					callbacks=annotation_info_list.append)
                 annotation_id += 1
 
         myPool.close()

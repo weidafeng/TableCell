@@ -1,18 +1,20 @@
 项目说明
 ========
 
-本项目是我2019年7月份的实习工作，需要：
+本项目是我2019年7月份的实习工作的\*\***展示与记录**\*\*：
 
-1.  把倾斜的表格旋转水平
+1.  把倾斜的表格旋转水平；
 
-2.  制作5000张表格数据集，需要标注每一个单元格。
+2.  制作5000张表格数据集，需要标注每一个单元格，并实现单元格检测
 
-考虑到人工标注太费时（1张表格图片大概30个单元格，大概3～5分钟一张，一共需2500小时），所以考虑利用常规的图像处理，提取出表格线，自动标注。
+第一项比较简单，仿射变换、透视变换已经很成熟了，关键是第二项。
+
+考虑到人工标注太费时（1张表格图片大概30个单元格，大概3～5分钟一张，一共需2500小时），所以尝试利用常规的图像处理，提取出表格线，自动标注。
 
 涉及代码：图像旋转（仿射变换）、表格线提取、转coco格式、可视化、随机保存文件、根据图片文件名匹配对应的标签文件等
 
-代码说明：
-----------
+关键代码说明：
+--------------
 
 ### 表格旋转
 
@@ -23,7 +25,7 @@
 过程: 1. HoughLines ——\> get the rotation angle 2. warpAffine ——\>
 affine(rotation)
 
-### 从表格图片提取每个单元格坐标、制作数据集
+### 从表格图片提取每个单元格坐标
 
 `extract-table-visual.py`
 
@@ -33,8 +35,12 @@ affine(rotation)
 
 输入一张图片，可视化表格线。为了使表格闭合、得到交点，故意调整参数，使得横线、竖线都更长。
 
-table-cell 单元格识别说明文档 
-==============================
+### 制作coco格式数据集
+
+`table-cell-to-coco.py （刚刚修改了多线程处理的bug-12月11日）`
+
+table-cell 单元格识别说明文档
+=============================
 
 任务一：tabel-bank数据集（标注到表格级，coco格式）
 --------------------------------------------------
@@ -47,7 +53,7 @@ table-cell 单元格识别说明文档
 
 使用mmdetection目标识别库进行训练时，只需修改config/xxx.py的数据集目录、图片大小、label_name、label种类数（2，表示表格和背景两类）。
 
-### 示例图
+### 表格检测示例图
 
 检测结果示意图（使用最简单的faster rcnn训练12个epoch，准确率达到99%以上）：
 
@@ -56,17 +62,9 @@ table-cell 单元格识别说明文档
 任务二：tabel-cell 数据集（标注到单元格级，coco格式）
 -----------------------------------------------------
 
-### 数据集链接:
+### 对应代码：
 
-如有需要请邮件联系我获取。
-
-![](media/813fc6bcc44f63113e40a7d73094d091.png)
-
-### 制作数据集的代码：
-
-链接: https://pan.baidu.com/s/1KfdKnHmy9seIdrCcTMWqfA 提取码: 7df6
-
-![](media/f1e11863321b5815f2537c48af03f8fc.png)
+table-cell-to-coco.py
 
 ### 图片来源：
 
@@ -75,7 +73,7 @@ bank数据集word版图片，选取以a-c开头的5116张图片（然后从这51
 
 ### 标签制作：
 
-\`\`\`bash
+\`\`\` bash
 
 利用opencv库，提取出表格、单元格，然后转成coco格式
 
@@ -116,7 +114,7 @@ bank数据集word版图片，选取以a-c开头的5116张图片（然后从这51
 
 ### 倾斜矫正
 
-\`\`\`bash
+\`\`\` bash
 
 \# 输入一张倾斜的图像,自动仿射变换、旋转调整整个图像
 
@@ -130,10 +128,7 @@ bank数据集word版图片，选取以a-c开头的5116张图片（然后从这51
 
 **对应代码：**
 
-table-rotation.py （链接: https://pan.baidu.com/s/1KfdKnHmy9seIdrCcTMWqfA
-提取码: 7df6）
-
-![](media/f1e11863321b5815f2537c48af03f8fc.png)
+table-rotation.py
 
 #### 示例图：
 
@@ -169,19 +164,20 @@ hupu），下载后可进行测试。
 
 ![](media/b7d18fe8c8bce5463d26429bf6981de1.png)
 
-测试步骤（详见上次工作交接中mmdetection使用说明）：
+测试步骤（详见mmdetection使用说明）：
 
-1.  使用提供的inference.py文件替换mmdetection/mmdet/apis/inference.py
+1.  使用提供的inference.py文件替换mmdetection/mmdet/apis/inference.py（我主要添加以文本形式保存预测结果的函数，不替换也能看到可视化效果）
 
 2.  重新编译 python setup.py install
 
 3.  运行测试代码：
 
--   bash test.sh \~/test_images/ \\
+\`\`\` bash
 
-    >   ../mmdetection/config/mask_xxxx.py \\
+-   bash test.sh \~/test_images/ ../mmdetection/config/mask_xxxx.py
+    ../mmdetection/workdir/latest.pth
 
-    >   ../mmdetection/workdir/latest.pth
+\`\`\`
 
 #### 测试结果示例图：
 
@@ -206,9 +202,17 @@ hupu），下载后可进行测试。
 Reference：
 -----------
 
-### TableBank： 
+### TableBank：
 
 <https://github.com/doc-analysis/TableBank>
+
+### 制作coco格式数据集：
+
+<https://github.com/weidafeng/CCPD2COCO>
+
+### mmdetection
+
+<https://github.com/open-mmlab/mmdetection>
 
 ### 图像旋转数学原理：
 
@@ -228,8 +232,3 @@ https://blog.csdn.net/on2way/article/details/46981825
 DFT之前的原图像在x y方向上表示空间坐标，DFT是经过x
 y方向上的傅里叶变换来统计像素在这两个方向上不同频率的分布情况，
 所以DFT得到的图像在x y方向上不再表示空间上的长度，而是频率。
-
-联系方式：
-----------
-
-邮箱：weidafeng\@sjtu.edu.cn
